@@ -35,3 +35,11 @@
 .touch-forward{grid-column:2;grid-row:1}.touch-left{grid-column:1;grid-row:2}.touch-back{grid-column:2;grid-row:2}.touch-right{grid-column:3;grid-row:2}
 @media(pointer:coarse){.walking .touch-movement:not([hidden]){display:block}.walking .walk-help{display:none}.walking .scene-caption{display:none}.walking .interaction{bottom:268px}}
 @media(max-width:700px){.walking .control-dock{bottom:10px}.walking .touch-movement{bottom:90px;left:10px}.walking .touch-arrows{grid-template-columns:43px 43px 43px;grid-template-rows:43px 43px}}
+
+/* Keep the actual view visible in FPS: floor picker is for architectural mode.
+   Floor switching remains available by exiting walking or riding the lift. */
+.walking .floor-panel{display:none}
+.walking .interaction{bottom:162px}
+.walking .control-dock{z-index:5}
+.walking .scene-caption{display:none}
+@media(max-width:700px){.walking .interaction{bottom:280px}.walking .control-dock{left:10px;right:10px}}
