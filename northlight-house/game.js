@@ -11,7 +11,7 @@ renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.18;
-renderer.shadowMap.enabled=true;
+renderer.shadowMap.enabled=!new URLSearchParams(location.search).has('qa');
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 viewport.appendChild(renderer.domElement);
 
