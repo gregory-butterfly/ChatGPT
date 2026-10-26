@@ -106,11 +106,28 @@ function art(p,x,y,z,w,h,rot,colors=[0x88aa91,0x496e70,0xe0b57b]){
  const stripe=box(g,w*.18,h*.75,.025,-w*.29,-h*.02,.063,c);stripe.rotation.z=.24;
  return g;
 }
-function rug(p,x,z,w,d,color,trim=m.white){
+function rug(p,x,z,w,d,color,trim=m.white,style=-1){
  box(p,w,.014,d,x,.037,z,color);
- // Rug border
- box(p,w,.012,.05,x,.051,z-d/2+.05,trim);
- box(p,w,.012,.05,x,.051,z+d/2-.05,trim);
+ // Genuine layered woven rugs, with a distinct pattern per residence.
+ const border=.075;
+ for(const zedge of [-1,1])box(p,w,.009,border,x,.050,z+zedge*(d/2-border/2),trim);
+ for(const xedge of [-1,1])box(p,border,.009,d,x+xedge*(w/2-border/2),.050,z,trim);
+ if(style<0)return;
+ const inW=w-.31,inD=d-.31;
+ if(style===0){ // Dune: broad irregular sand bands
+  for(let i=0;i<5;i++)box(p,inW*(i%2?.72:.90),.007,.09,x+(i%2?.06:-.04),.051,z-inD/2+.18+i*(inD-.36)/4,trim);
+ }else if(style===1){ // Tide: marine pinstripes
+  for(let i=0;i<7;i++)box(p,.035,.007,inD,x-inW/2+(i+.5)*inW/7,.052,z,trim);
+ }else if(style===2){ // Grove: offset natural woven blocks
+  for(let i=0;i<4;i++)for(let j=0;j<3;j++)box(p,inW/5,.007,inD/5,x-inW/2+(i+.68)*inW/4,.051,z-inD/2+(j+.55)*inD/3,(i+j)%2?trim:m.sage);
+ }else if(style===3){ // Loft: industrial grid
+  for(let i=0;i<5;i++)box(p,.028,.007,inD,x-inW/2+(i+1)*inW/6,.051,z,trim);
+  for(let i=0;i<4;i++)box(p,inW,.007,.028,x,.052,z-inD/2+(i+1)*inD/5,trim);
+ }else if(style===4){ // Atelier: offset painterly geometry
+  for(let i=0;i<4;i++){const q=box(p,inW*.38,.007,inD*.10,x+((i%2)-.5)*inW*.4,.052,z-inD*.30+i*inD*.21,trim);q.rotation.y=(i%2?-.10:.10);}
+ }else { // Library: quiet woven chevrons
+  for(let i=0;i<5;i++){const zz=z-inD*.39+i*inD*.19;for(const sign of [-1,1]){const q=box(p,inW*.45,.007,.055,x+sign*inW*.22,.052,zz,trim);q.rotation.y=sign*.30;}}
+ }
 }
 function plant(p,x,z,size=1){
  const g=group(p,x,0,z);g.scale.setScalar(size);
@@ -120,11 +137,31 @@ function plant(p,x,z,size=1){
  ball(g,r,sx,sy,sz,(sx>0?m.leaf2:m.leaf));
  return g;
 }
-function roomLight(p,x,y,z,power=1.0){
+function roomLight(p,x,y,z,power=1.0,switchAt=null,name='room'){
  cylinder(p,.18,.045,x,y,z,m.bronze);
- cylinder(p,.15,.04,x,y-.032,z,glow);
+ const bulbMaterial=glow.clone();
+ cylinder(p,.15,.04,x,y-.032,z,bulbMaterial);
  const light=new THREE.PointLight(0xffd4a5,power*8,7,2);
- light.position.set(x,y-.23,z);p.add(light);lamps.push(light);
+ light.position.set(x,y-.23,z);
+ light.userData.enabled=true;
+ light.userData.power=power;
+ p.add(light);lamps.push(light);
+ if(switchAt){
+   const plate=box(p,.045,.25,.18,switchAt.x,1.22,switchAt.z,m.white);
+   const toggleButton=box(p,.067,.105,.095,switchAt.x+.027,1.23,switchAt.z,m.bronze);
+   const item={type:'switch',object:plate,secondary:toggleButton,lamp:light,on:true,
+     label:'Turn off '+name+' lights'};
+   item.toggle=()=>{
+     item.on=!item.on;
+     light.userData.enabled=item.on;
+     bulbMaterial.emissiveIntensity=item.on?.7:0;
+     toggleButton.position.y=item.on?1.23:1.17;
+     item.label=(item.on?'Turn off ':'Turn on ')+name+' lights';
+   };
+   plate.userData.interaction=item;toggleButton.userData.interaction=item;
+   interactions.push(item);
+ }
+ return light;
 }
 function bench(p,x,z,w=1.8,mat=m.timber){
  box(p,w,.11,.55,x,.49,z,mat,{collide:true});
@@ -159,11 +196,40 @@ function bed(p,x,z,wood,cloth,rot=0){
  for(const dx of [-.43,.43])box(g,.72,.11,.45,dx,.66,-.76,m.lime);
  return g;
 }
-function cabinet(p,x,z,w=1.25,color=m.darkwood,rot=0,height=1.0,depth=.44){
+function cabinet(p,x,z,w=1.25,color=m.darkwood,rot=0,height=1.0,depth=.44,label='cabinet'){
  const g=group(p,x,0,z);g.rotation.y=rot;
- box(g,w,height,depth,0,height/2,0,color,{collide:true});
- const seam=box(g,.018,height-.11,.008,0,height/2,depth/2+.006,m.black);
- for(const dx of [-.12,.12])box(g,.055,.055,.055,dx,height*.65,depth/2+.035,m.bronze);
+ const t=.045,front=depth/2;
+ box(g,t,height,depth,-w/2+t/2,height/2,0,color,{collide:true});
+ box(g,t,height,depth,w/2-t/2,height/2,0,color,{collide:true});
+ box(g,w,t,depth,0,height-t/2,0,color);
+ box(g,w,t,depth,0,t/2,0,color);
+ box(g,w,height,t,0,height/2,-depth/2+t/2,color);
+ if(height>1.4)for(const yy of [.74,1.42])box(g,w-.11,.04,depth-.12,0,yy,0,color);
+ const leafW=(w-.12)/2;
+ for(const left of [true,false]){
+   const hinge=left?-w/2+t:w/2-t;
+   const sign=left?1:-1;
+   const pivot=group(g,hinge,.065,front+.01);
+   const panel=box(pivot,leafW,height-.13,.045,sign*leafW/2,(height-.13)/2,0,color,{role:'door'});
+   const knob=box(pivot,.07,.075,.065,sign*(leafW-.12),height*.6,.055,m.bronze);
+   const item={type:'cupboard',object:panel,secondary:knob,pivot,desired:0,open:false,
+     label:'Open '+label};
+   item.toggle=()=>{item.open=!item.open;item.desired=item.open?(left?-1.47:1.47):0;item.label=(item.open?'Close ':'Open ')+label;};
+   panel.userData.interaction=item;knob.userData.interaction=item;interactions.push(item);
+ }
+ return g;
+}
+function drawer(p,x,y,z,w=.66,color=m.timber,label='drawer'){
+ const g=group(p,x,y,z);
+ box(g,w,.23,.035,0,0,0,color,{role:'drawer'});
+ const face=g.children[0];
+ const handle=box(g,.28,.04,.056,0,.025,.055,m.bronze);
+ box(g,w-.06,.035,.48,0,-.11,-.22,color);
+ for(const sx of [-1,1])box(g,.035,.20,.48,sx*(w/2-.04),-.015,-.22,color);
+ const item={type:'drawer',object:face,secondary:handle,slide:g,closedZ:z,openZ:z+.43,
+   open:false,label:'Open '+label};
+ item.toggle=()=>{item.open=!item.open;item.label=(item.open?'Close ':'Open ')+label;};
+ face.userData.interaction=item;handle.userData.interaction=item;interactions.push(item);
  return g;
 }
 function bookcase(p,x,z,rot,wood=m.darkwood){
