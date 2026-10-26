@@ -121,7 +121,7 @@ function showExterior(){
 }
 function enterWalk(){
  state.previousCutaway=state.cutaway;
- state.mode='walk';state.cutaway=false;applyLayers();
+ state.mode='walk';state.cutaway=false;document.body.classList.add('walking');applyLayers();
  orbit.enabled=false;targetView=null;
  $('explore-label').textContent='Exit walking';
  $('mode-label').textContent='WALK-THROUGH MODE';
@@ -133,7 +133,7 @@ function enterWalk(){
  renderer.domElement.requestPointerLock?.().catch(()=>{});
 }
 function exitWalk(){
- state.mode='orbit';state.cutaway=state.previousCutaway;
+ state.mode='orbit';document.body.classList.remove('walking');state.cutaway=state.previousCutaway;
  orbit.enabled=true;down.clear();state.hit=null;
  if(document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
  $('interaction').hidden=true;$('walk-help').hidden=true;$('crosshair').hidden=true;$('orbit-help').hidden=false;
