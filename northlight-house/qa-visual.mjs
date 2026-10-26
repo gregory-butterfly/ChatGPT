@@ -1,7 +1,7 @@
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
 
-const folder='northlight-house/qa';
+const folder='northlight-house/qa/'+(process.env.GITHUB_SHA||'local').slice(0,12);
 await fs.mkdir(folder,{recursive:true});
 const browser=await chromium.launch({
   headless:true,
