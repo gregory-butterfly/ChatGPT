@@ -31,10 +31,10 @@ jobs:
           node --check northlight-house/game.js
           node --check northlight-house/world.js
           node --check northlight-house/qa-visual.mjs
-      - name: Install Chromium and Playwright
+      - name: Use preinstalled Chrome with Playwright
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          google-chrome --version
       - name: Start local test server
         run: |
           nohup python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/northlight-server.log 2>&1 &
