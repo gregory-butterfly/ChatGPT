@@ -559,9 +559,12 @@ function landscaping(scene){
  box(ground,32,.1,.16,0,.08,-8.45,m.stone);
 }
 function ceiling(p,y){
- // Ceiling segments can be hidden during cutaway inspection.
+ // Match the structural floor plates: leave the stairwell and lift shafts
+ // physically clear so stairs never cut through a fake continuous ceiling.
  const upper=group(p);
- box(upper,31.7,.14,16.1,0,y-.07,0,m.lime);
+ box(upper,12.9,.14,16.1,-9.35,y-.07,0,m.lime);
+ box(upper,12.9,.14,16.1,9.35,y-.07,0,m.lime);
+ box(upper,5.2,.14,9.65,0,y-.07,3.25,m.lime);
  return upper;
 }
 function createBuilding(scene){
