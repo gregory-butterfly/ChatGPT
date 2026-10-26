@@ -5,6 +5,7 @@ const folder='northlight-house/qa';
 await fs.mkdir(folder,{recursive:true});
 const browser=await chromium.launch({
   headless:true,
+  channel:'chrome',
   args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--enable-unsafe-swiftshader','--disable-dev-shm-usage']
 });
 const page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor:1});
