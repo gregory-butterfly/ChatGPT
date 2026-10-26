@@ -149,7 +149,7 @@ function toggleDay(){
  scene.fog.color.setHex(state.night?0x172a33:0xb7cdcb);
  ambient.intensity=state.night?.55:1.4;
  sun.intensity=state.night?.10:2.35;moon.intensity=state.night?.72:0;
- for(const l of world.lamps)l.intensity=state.night?9:4.8;
+ for(const l of world.lamps)l.intensity=(state.night?9:4.8)*(l.userData.power||1);
  renderer.toneMappingExposure=state.night?1.43:1.18;
  $('day-label').textContent=state.night?'Daylight':'Evening';
  $('day').classList.toggle('active',state.night);
@@ -226,18 +226,20 @@ function render(now){
   }
   orbit.update();
  }
- // Smoothly animate door leaves without jumping the collision state.
+ // Cached interaction motion: doors swing, drawers slide, records spin.
  for(const item of world.interactions){
-  if(!item.pivot)continue;
-  const next=THREE.MathUtils.damp(item.pivot.rotation.y,item.desired,9,dt);
-  item.pivot.rotation.y=next;
+  if(item.pivot)item.pivot.rotation.y=THREE.MathUtils.damp(item.pivot.rotation.y,item.desired,9,dt);
+  if(item.slide)item.slide.position.z=THREE.MathUtils.damp(item.slide.position.z,
+    item.open?item.openZ:item.closedZ,11,dt);
+  if(item.spinner&&item.playing)item.spinner.rotation.y+=dt*3.8;
  }
- // Restrict point lights to the nearest rooms, avoiding a massive shader light array.
+ // Culling lights respects room switches and avoids a large shader-light list.
  if(frame++%12===0){
-  const lights=world.lamps.slice().sort((a,b)=>a.getWorldPosition(tmpV.clone()).distanceToSquared(camera.position)-
-    b.getWorldPosition(tmpV.clone()).distanceToSquared(camera.position));
-  const visible=new Set(lights.slice(0,state.mode==='walk'?5:8));
-  for(const l of world.lamps)l.visible=visible.has(l);
+  const lights=world.lamps.filter(l=>l.userData.enabled!==false&&sourceVisible(l))
+    .sort((a,b)=>a.getWorldPosition(tmpV.clone()).distanceToSquared(camera.position)-
+      b.getWorldPosition(tmpV.clone()).distanceToSquared(camera.position));
+  const visible=new Set(lights.slice(0,state.mode==='walk'?6:9));
+  for(const l of world.lamps)l.visible=l.userData.enabled!==false&&visible.has(l);
  }
  renderer.render(scene,camera);
  if(frame===2){$('loading').hidden=true;window.northlightQA.ready=true;}
@@ -292,10 +294,34 @@ window.northlightQA={
  selectFloor(n){selectFloor(n,true)},
  showExterior,enterWalk,exitWalk,
  get interactions(){return world.interactions.length},
+ get interactionsByType(){
+   return world.interactions.reduce((out,i)=>{out[i.type||'door']=(out[i.type||'door']||0)+1;return out;},{});
+ },
+ get lightSwitchesOn(){return world.interactions.filter(i=>i.type==='switch'&&i.on).length},
+ testInteraction(type){
+   const i=world.interactions.find(i=>i.type===type);
+   if(!i)throw Error('Interaction type not found: '+type);
+   const before=i.label;
+   i.toggle();
+   return {before,after:i.label,open:i.open,on:i.on,playing:i.playing};
+ },
+ gotoHome(index,room='living'){
+   const indexN=Math.max(0,Math.min(5,Math.floor(index)));
+   const floor=Math.floor(indexN/2)+1;
+   selectFloor(floor);
+   if(state.mode!=='walk')enterWalk();
+   const sign=indexN%2===0?-1:1;
+   player.x=sign*(15.8-(room==='bedroom'?2.25:room==='kitchen'?10.16:room==='bathroom'?5.90:5.05));
+   player.y=floor*H;
+   player.z=room==='bedroom'?-3.1:room==='kitchen'?-2.90:room==='bathroom'?-2.25:6.30;
+   player.yaw=0;player.pitch=-.1;
+   motion(0);
+   return {name:homes[indexN].name,room,position:{...player}};
+ },
  get homes(){return homes.map(h=>h.name)}
 };
 applyLayers();
 setText();
 aimCamera(0,6.8,0,44);
-for(const l of world.lamps)l.intensity=4.8;
+for(const l of world.lamps)l.intensity=4.8*(l.userData.power||1);
 requestAnimationFrame(render);
