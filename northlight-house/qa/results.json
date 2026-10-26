@@ -1,8 +1,25 @@
 {
-  "ok": false,
-  "errors": [
-    "Failed to load resource: the server responded with a status of 404 (File not found)"
-  ],
+  "ok": true,
+  "details": {
+    "meshObjects": 2770,
+    "interactions": 30,
+    "homes": [
+      "THE DUNE",
+      "THE TIDE",
+      "THE GROVE",
+      "THE LOFT",
+      "THE ATELIER",
+      "THE LIBRARY"
+    ]
+  },
+  "walking": {
+    "x": 0,
+    "y": 6.7,
+    "z": 4.8,
+    "yaw": 0,
+    "pitch": 0,
+    "eye": 1.66
+  },
   "captures": [
     "exterior",
     "first-floor cutaway",
@@ -10,6 +27,6 @@
     "roof",
     "walk"
   ],
-  "error": "Error: Browser runtime errors: Failed to load resource: the server responded with a status of 404 (File not found)",
-  "sourceCommit": "1e04c03d4a0d4fb30a46457a99cf19f5dcaa9f17"
+  "errors": [],
+  "sourceCommit": "5580ae6741e697d622e5eb022fa323c01794c8a4"
 }
