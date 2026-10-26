@@ -350,7 +350,12 @@ window.northlightQA={
    player.x=sign*(15.8-(room==='bedroom'?2.25:room==='kitchen'?10.16:room==='bathroom'?5.90:5.05));
    player.y=floor*H;
    player.z=room==='bedroom'?-3.1:room==='kitchen'?-2.90:room==='bathroom'?-2.25:6.30;
-   player.yaw=0;player.pitch=-.1;
+   // "decor" inspects the outer-wall colour, bespoke accessories and art.
+   player.yaw=room==='decor'?(sign<0?Math.PI/2:-Math.PI/2):0;
+   player.pitch=-.1;
+   state.hit=null;
+   $('interaction').hidden=true;
+   lastProbe=0;
    motion(0);
    return {name:homes[indexN].name,room,position:{...player}};
  },
