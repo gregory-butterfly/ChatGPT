@@ -24,7 +24,30 @@ try {
     homes:window.northlightQA.homes
   }));
   if(details.meshObjects<500)throw Error('Unexpectedly few 3D objects: '+details.meshObjects);
-  if(details.interactions<10)throw Error('Door interactions missing');
+  if(details.interactions<100)throw Error('Expected many working furniture/lighting interactions: '+details.interactions);
+  const featureQA=await page.evaluate(()=>{
+    const qa=window.northlightQA;
+    const count=qa.interactionsByType;
+    if((count.switch||0)<24)throw Error('Light switches missing: '+(count.switch||0));
+    if((count.cupboard||0)<40)throw Error('Interactive furniture missing: '+(count.cupboard||0));
+    if((count.drawer||0)<12)throw Error('Pull-out kitchen drawers missing: '+(count.drawer||0));
+    if((count.record||0)!==1)throw Error('Loft turntable missing');
+    const lightsBefore=qa.lightSwitchesOn;
+    const turnedOff=qa.testInteraction('switch');
+    if(qa.lightSwitchesOn!==lightsBefore-1||turnedOff.on!==false)throw Error('Light switch did not turn off');
+    const turnedOn=qa.testInteraction('switch');
+    if(qa.lightSwitchesOn!==lightsBefore||turnedOn.on!==true)throw Error('Light did not turn back on');
+    const drawerOpen=qa.testInteraction('drawer');
+    if(drawerOpen.open!==true)throw Error('Drawer failed to open');
+    qa.testInteraction('drawer');
+    const cupboardOpen=qa.testInteraction('cupboard');
+    if(cupboardOpen.open!==true)throw Error('Cabinet door failed to open');
+    qa.testInteraction('cupboard');
+    const music=qa.testInteraction('record');
+    if(music.playing!==true)throw Error('Record failed to play');
+    qa.testInteraction('record');
+    return {counts:count,switches:lightsBefore};
+  });
   await page.screenshot({path:folder+'/01-exterior.png',timeout:30000});
   captures.push('exterior');
   await page.evaluate(()=>window.northlightQA.selectFloor(1));
@@ -46,9 +69,25 @@ try {
   if(Math.abs(walking.y-6.7)>0.6)throw Error('Player feet failed to stay on upper floor: '+walking.y);
   await page.screenshot({path:folder+'/05-walk-level2.png',timeout:30000});
   captures.push('walk');
-  await fs.writeFile(folder+'/results.json',JSON.stringify({ok:errors.length===0,details,walking,captures,errors,sourceCommit:process.env.GITHUB_SHA},null,2));
+  // Verify different apartment styling and furnishings inside the real FPS camera.
+  for(let index=0;index<6;index++){
+    const location=await page.evaluate(i=>window.northlightQA.gotoHome(i,'living'),index);
+    if(Math.abs(location.position.y-(Math.floor(index/2)+1)*3.35)>.04)
+      throw Error('Floor mismatch in '+location.name+': '+location.position.y);
+    await page.waitForTimeout(380);
+    const name='home-'+String(index+1).padStart(2,'0')+'-'+location.name.toLowerCase().replaceAll(' ','-');
+    await page.screenshot({path:folder+'/'+name+'.png',timeout:30000});
+    captures.push(name);
+  }
+  for(const [room,index] of [['bedroom',0],['kitchen',3],['bathroom',5]]){
+    await page.evaluate(v=>window.northlightQA.gotoHome(v.index,v.room),{room,index});
+    await page.waitForTimeout(380);
+    await page.screenshot({path:folder+'/detail-'+room+'.png',timeout:30000});
+    captures.push('detail-'+room);
+  }
+  await fs.writeFile(folder+'/results.json',JSON.stringify({ok:errors.length===0,details,featureQA,walking,captures,errors,sourceCommit:process.env.GITHUB_SHA},null,2));
   if(errors.length)throw Error('Browser runtime errors: '+errors.slice(0,6).join('; '));
-  console.log('NORTHLIGHT QA PASS '+JSON.stringify({details,walking,captures}));
+  console.log('NORTHLIGHT QA PASS '+JSON.stringify({details,featureQA,walking,captures}));
 }catch(e){
   await fs.writeFile(folder+'/results.json',JSON.stringify({ok:false,errors,captures,error:String(e),sourceCommit:process.env.GITHUB_SHA},null,2));
   console.error('NORTHLIGHT QA FAILED '+String(e));
