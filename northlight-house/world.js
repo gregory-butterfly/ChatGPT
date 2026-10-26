@@ -243,6 +243,7 @@ function bookcase(p,x,z,rot,wood=m.darkwood){
 }
 function kitchen(p,x,z,colors){
  const g=group(p,x,0,z);
+ g.rotation.y=-Math.PI/2; // Real kitchen on the solid corridor partition, not in the rear windows.
  // Built-in cabinet carcass: leave cavities visible behind the hinged doors.
  box(g,4.65,.055,.68,0,.075,0,colors.cabinets);
  box(g,4.65,.05,.68,0,.91,0,colors.cabinets);
@@ -250,8 +251,8 @@ function kitchen(p,x,z,colors){
  for(const a of [-2.29,-1.12,.01,1.13,2.29])
   box(g,.045,.84,.66,a,.48,0,colors.cabinets);
  box(g,4.80,.085,.76,0,.964,0,colors.counter,{collide:true});
- // Three low cupboards plus a triple drawer stack, all interactive.
- for(const [bx,bw] of [[-1.69,1.04],[-.56,1.05],[1.73,1.03]]){
+ // Two cupboards, a drawer stack, and a separate oven cavity.
+ for(const [bx,bw] of [[-1.69,1.04],[-.56,1.05]]){
    makeDoor(g,bx,.095,.354,bw,.78,0,'kitchen cupboard',colors.cabinets, bx<0?-1:1);
  }
  for(let i=0;i<3;i++)drawer(g,.57,.23+i*.255,.37,.95,colors.cabinets,'kitchen drawer');
@@ -264,13 +265,13 @@ function kitchen(p,x,z,colors){
  box(g,.78,.021,.41,-1.12,1.01,.05,m.steel);
  cylinder(g,.024,.3,-1.39,1.15,-.13,m.bronze);
  box(g,.30,.025,.026,-1.24,1.3,-.13,m.bronze);
- box(g,.83,.025,.59,1.12,1.01,.035,m.black);
- for(const bx of [.88,1.34])for(const zz of [-.15,.23])
+ box(g,.83,.025,.59,1.72,1.01,.035,m.black);
+ for(const bx of [1.48,1.94])for(const zz of [-.15,.23])
   cylinder(g,.10,.016,bx,1.035,zz,m.steel);
- box(g,.85,.14,.66,1.12,1.9,-.1,m.steel);
- box(g,.31,.40,.24,1.12,2.15,-.17,m.steel);
+ box(g,.85,.14,.66,1.72,1.9,-.1,m.steel);
+ box(g,.31,.40,.24,1.72,2.15,-.17,m.steel);
  // Appliances: a small oven opening and a separate glass hob.
- const oven=makeDoor(g,1.15,.11,.398,.72,.55,0,'oven',m.black,-1);
+ const oven=makeDoor(g,1.72,.11,.398,.82,.64,0,'oven',m.black,-1);
  void oven;
 }
 function refrigerator(p,x,z,finish=m.steel){
@@ -473,8 +474,9 @@ function apartment(parent,level,side,config,aptNo){
  rug(flat,5.40,4.00,4.4,2.9,accentMat,m.white,config.variant);
  sofa(flat,5.00,4.65,sofaMat,Math.PI,config.variant===4?2.8:2.6);
  table(flat,5.15,2.8,m.timber,1.1,.60);
- cabinet(flat,4.6,.56,1.88,m.darkwood,0,.50,.47);
- box(flat,1.49,.87,.08,4.60,1.17,.48,m.black);
+ cabinet(flat,3.20,.56,1.88,cabMat,0,.50,.47,'TV sideboard');
+ box(flat,.10,.24,.10,3.20,.63,.52,m.steel);
+  box(flat,1.49,.87,.08,3.20,1.17,.48,m.black);
  roomLight(flat,5.10,H-.16,3.60,.7,{x:.14,z:5.71},'living room');
  plant(flat,.85,5.9,.90);
  // The outer x wall is solid from z 2.1 .. 3.3; hang art there.
@@ -491,9 +493,9 @@ function apartment(parent,level,side,config,aptNo){
  }
  // Bedroom is x 0.2..4.3, z -7.6..0
  // Bedroom rug is authored by decorateHome using this residence's own motif.
- bed(flat,2.14,-6.50,cabMat,sofaMat);
- cabinet(flat,.72,-7.35,.65,cabMat,0,.56,.42);
- cabinet(flat,3.56,-7.35,.65,cabMat,0,.56,.42);
+ bed(flat,2.90,-5.20,cabMat,sofaMat,-Math.PI/2);
+ cabinet(flat,3.70,-6.60,.65,cabMat,0,.56,.42,'bedside cabinet');
+ cabinet(flat,3.70,-3.85,.65,cabMat,0,.56,.42,'bedside cabinet');
  cabinet(flat,.58,-1.10,.95,cabMat,0,2.15,.59,'bedroom wardrobe');
  art(flat,4.25,1.70,-2.48,1.0,.8,-Math.PI/2,config.art);
  roomLight(flat,2.05,H-.16,-3.3,.55,{x:4.24,z:-1.02},'bedroom');
@@ -501,8 +503,8 @@ function apartment(parent,level,side,config,aptNo){
  bathroom(flat,colors);
  roomLight(flat,5.95,H-.15,-3.5,.55,{x:7.41,z:-1.10},'bathroom');
  // Kitchen, x 7.6..12.9, z -7.6..0
- kitchen(flat,10.18,-7.72,colors);
- refrigerator(flat,12.12,-4.95,config.variant===5?cabMat:m.steel);
+ kitchen(flat,12.55,-5.28,colors);
+ refrigerator(flat,8.22,-6.48,config.variant===5?cabMat:m.steel);
  table(flat,10.10,-2.65,config.variant%2?cabMat:m.timber,1.36,.73);
  chair(flat,9.8,-1.88,sofaMat,Math.PI);
  chair(flat,10.4,-3.44,accentMat,0);
