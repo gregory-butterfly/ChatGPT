@@ -1,0 +1,53 @@
+name: Northlight House visual QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'northlight-house/index.html'
+      - 'northlight-house/style.css'
+      - 'northlight-house/game.js'
+      - 'northlight-house/world.js'
+      - 'northlight-house/qa-visual.mjs'
+      - '.github/workflows/northlight-visual-qa.yml'
+  workflow_dispatch:
+concurrency:
+  group: northlight-visual-qa
+  cancel-in-progress: true
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript source syntax
+        run: |
+          node --check northlight-house/game.js
+          node --check northlight-house/world.js
+          node --check northlight-house/qa-visual.mjs
+      - name: Install Chromium and Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local test server
+        run: |
+          nohup python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/northlight-server.log 2>&1 &
+          sleep 2
+      - name: Capture five WebGL views and verify room-floor placement
+        run: node northlight-house/qa-visual.mjs
+      - name: Preserve visual QA images
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add northlight-house/qa/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record Northlight House WebGL QA evidence"
+          git pull --rebase origin main
+          git push origin HEAD:main
