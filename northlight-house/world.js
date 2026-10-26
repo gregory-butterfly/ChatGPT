@@ -345,6 +345,9 @@ function floorShell(scene,idx){
    slab(content,-15.8,-2.6,-8.1,8.1,0,m.stone);
    slab(content,2.6,15.8,-8.1,8.1,0,m.stone);
    slab(content,-2.6,2.6,-1.55,8.1,0,m.stone);
+   // Each level needs a real landing inside the lift shaft. Without it,
+   // visitors could step through the lift doorway and fall to ground level.
+   slab(content,.78,2.12,-7.67,-4.32,0,m.stone);
  }else{
    slab(content,-15.8,15.8,-8.1,8.1,0,m.stone);
  }
