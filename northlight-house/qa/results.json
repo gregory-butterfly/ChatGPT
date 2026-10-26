@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "captures": [
+    "exterior",
+    "first-floor cutaway",
+    "second-floor cutaway",
+    "roof",
+    "walk"
+  ],
+  "error": "Error: Browser runtime errors: Failed to load resource: the server responded with a status of 404 (File not found)",
+  "sourceCommit": "a4e9e4509cae0ba092561f970061cc5604ee0c8f"
+}
