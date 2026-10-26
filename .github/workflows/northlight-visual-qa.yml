@@ -11,7 +11,7 @@ on:
       - '.github/workflows/northlight-visual-qa.yml'
   workflow_dispatch:
 concurrency:
-  group: northlight-visual-qa
+  group: northlight-visual-qa-${{ github.sha }}
   cancel-in-progress: true
 permissions:
   contents: write
