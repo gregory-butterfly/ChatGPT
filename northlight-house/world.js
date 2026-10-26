@@ -261,6 +261,9 @@ function kitchen(p,x,z,colors){
    box(g,.85,.73,.36,bx,2.19,-.15,colors.cabinets);
    makeDoor(g,bx,1.84,.068,.78,.70,0,'wall cupboard',colors.cabinets,bx<0?-1:1);
  }
+ // The cooker wall is solid; colourful backsplash is mounted flush to it.
+ box(g,4.60,.62,.032,0,1.35,-.49,colors.backsplash||m.sage);
+ for(let k=0;k<6;k++)box(g,.016,.62,.035,-1.94+k*.76,1.35,-.466,m.white);
  // Sink and tap on the countertop.
  box(g,.78,.021,.41,-1.12,1.01,.05,m.steel);
  cylinder(g,.024,.3,-1.39,1.15,-.13,m.bronze);
@@ -396,7 +399,7 @@ function decorateHome(flat,config,cabMat,accentMat,sofaMat){
    for(const [i,x] of [1.33,1.70,2.04].entries()){
      cylinder(flat,.10+i*.018,.20+i*.045,x,1.05,6.76,material(config.art[i]),12);
    }
-   art(flat,4.24,1.86,-3.82,.77,.92,-Math.PI/2,[0xc28c61,0xdab991,0x768e78]);
+   art(flat,4.18,1.86,-3.82,.77,.92,-Math.PI/2,[0xc28c61,0xdab991,0x768e78]);
  }else if(v===1){ // TIDE · sea glass console and coastal sculpture
    floorLamp(flat,2.70,6.42,material(0xb9dce2));
    const console=cabinet(flat,1.55,6.70,1.10,cabMat,0,.70,.42,'coastal console');
@@ -404,7 +407,7 @@ function decorateHome(flat,config,cabMat,accentMat,sofaMat){
    box(flat,.83,.39,.35,1.55,.97,6.70,m.glassDark);
    box(flat,.76,.17,.30,1.55,.85,6.70,material(0x498c9c,.25));
    ball(flat,.10,1.35,1.12,6.7,material(0xf4e5c5));
-   art(flat,4.24,1.85,-4.10,1.12,.73,-Math.PI/2,[0x4d9aad,0xb2d8d9,0xd4ad84]);
+   art(flat,4.18,1.85,-4.10,1.12,.73,-Math.PI/2,[0x4d9aad,0xb2d8d9,0xd4ad84]);
  }else if(v===2){ // GROVE · botanical workstation
    floorLamp(flat,2.72,6.43,material(0x779b71));
    for(const [x,z,scale] of [[1.22,6.72,.88],[2.15,6.72,.64],[11.12,6.65,.55]])plant(flat,x,z,scale);
@@ -413,7 +416,7 @@ function decorateHome(flat,config,cabMat,accentMat,sofaMat){
  }else if(v===3){ // LOFT · vinyl and contemporary graphic art
    recordPlayer(flat,1.65,6.60,{cabinets:cabMat});
    floorLamp(flat,2.80,6.39,material(0xd7ae71));
-   art(flat,4.24,1.74,-3.93,1.13,.86,-Math.PI/2,[0x233d48,0xc19550,0xd9cec0]);
+   art(flat,4.18,1.74,-3.93,1.13,.86,-Math.PI/2,[0x233d48,0xc19550,0xd9cec0]);
    const stand=group(flat,11.53,0,6.53);
    box(stand,.83,.12,.38,0,.88,0,m.black);
    for(let i=0;i<12;i++)box(stand,.042,.014,.31,-.36+i*.065,.954,0,i%3?m.white:m.black);
@@ -439,7 +442,7 @@ function decorateHome(flat,config,cabMat,accentMat,sofaMat){
    const side=table(flat,3.21,6.51,cabMat,.48,.42);
    for(let i=0;i<3;i++)box(side,.36,.04,.21,0,.84+i*.05,0,material(config.art[i]));
    bookcase(flat,3.55,-1.40,Math.PI/2,cabMat);
-   art(flat,4.24,1.77,-4.05,.90,.98,-Math.PI/2,[0x385b4b,0xe2c18d,0x9eb1a0]);
+   art(flat,4.18,1.77,-4.05,.90,.98,-Math.PI/2,[0x385b4b,0xe2c18d,0x9eb1a0]);
  }
  // Mixed coloured geometric runners make both hallway and bedroom distinct.
  rug(flat,2.14,-3.25,2.62,1.65,material(config.accent),m.white,v);
@@ -454,9 +457,13 @@ function apartment(parent,level,side,config,aptNo){
  const sofaMat=material(config.sofa);
  const cabMat=material(config.cab);
  const accentMat=material(config.accent);
- const colors={cabinets:cabMat,counter:m.white,towel:config.accent};
+ const colors={cabinets:cabMat,counter:m.white,towel:config.accent,backsplash:material(config.art[1])};
  // Total flat local x=0..12.95 (outer to corridor), back z=-7.8..0.
  slab(flat,.25,12.94,-7.65,7.65,0,floorMat,false);
+ // Original signature feature walls. Each home has its own rich backdrop.
+ // These panels follow solid architectural partitions and avoid windows.
+ box(flat,.032,2.55,3.26,.11,1.51,6.22,material(config.art[0],.9));
+ box(flat,.028,2.40,3.62,4.252,1.53,-3.32,material(config.art[2],.9));
  hwall(flat,.2,1.40,0,0,H,wallMat);
  hwall(flat,1.4,2.36,0,2.26,H,wallMat);
  makeDoor(flat,1.88,0,0,.87,2.16,0,'bedroom',cabMat,1);
@@ -472,7 +479,7 @@ function apartment(parent,level,side,config,aptNo){
  vwall(flat,7.54,-7.6,0,0,H,wallMat);
  // Lounge and dining, keep a 1.2m clear line between the entry and bathroom.
  rug(flat,5.40,4.00,4.4,2.9,accentMat,m.white,config.variant);
- sofa(flat,5.00,4.65,sofaMat,Math.PI,config.variant===4?2.8:2.6);
+ sofa(flat,5.00,4.65,sofaMat,Math.PI,[2.68,2.36,2.54,2.62,2.75,2.90][config.variant]);
  table(flat,5.15,2.8,m.timber,1.1,.60);
  cabinet(flat,3.20,.56,1.88,cabMat,0,.50,.47,'TV sideboard');
  box(flat,.10,.24,.10,3.20,.63,.52,m.steel);
@@ -497,7 +504,7 @@ function apartment(parent,level,side,config,aptNo){
  cabinet(flat,3.70,-6.60,.65,cabMat,0,.56,.42,'bedside cabinet');
  cabinet(flat,3.70,-3.85,.65,cabMat,0,.56,.42,'bedside cabinet');
  cabinet(flat,.58,-1.10,.95,cabMat,0,2.15,.59,'bedroom wardrobe');
- art(flat,4.25,1.70,-2.48,1.0,.8,-Math.PI/2,config.art);
+ art(flat,4.18,1.70,-2.48,1.0,.8,-Math.PI/2,config.art);
  roomLight(flat,2.05,H-.16,-3.3,.55,{x:4.24,z:-1.02},'bedroom');
  // Bathroom uses a dedicated self-contained layout; all fixtures are inside its walls.
  bathroom(flat,colors);
