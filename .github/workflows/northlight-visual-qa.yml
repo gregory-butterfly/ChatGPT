@@ -11,7 +11,7 @@ on:
       - '.github/workflows/northlight-visual-qa.yml'
   workflow_dispatch:
 concurrency:
-  group: northlight-visual-qa-${{ github.sha }}
+  group: northlight-visual-qa-final
   cancel-in-progress: true
 permissions:
   contents: write
@@ -49,5 +49,15 @@ jobs:
           git add northlight-house/qa/
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Record Northlight House WebGL QA evidence"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # Concurrent Page/QA updates may advance main between pull and push.
+          # Per-commit screenshot directories are unique, so rebasing is safe.
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              echo "QA evidence published"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Could not publish QA evidence after five attempts"
+          exit 1
