@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "details": {
+    "meshObjects": 3989,
+    "interactions": 191,
+    "homes": [
+      "THE DUNE",
+      "THE TIDE",
+      "THE GROVE",
+      "THE LOFT",
+      "THE ATELIER",
+      "THE LIBRARY"
+    ]
+  },
+  "featureQA": {
+    "counts": {
+      "door": 84,
+      "cupboard": 64,
+      "switch": 24,
+      "drawer": 18,
+      "record": 1
+    },
+    "switches": 24
+  },
+  "walking": {
+    "x": 0,
+    "y": 6.700000000000001,
+    "z": 4.8,
+    "yaw": 0,
+    "pitch": 0,
+    "eye": 1.66
+  },
+  "captures": [
+    "exterior",
+    "first-floor cutaway",
+    "second-floor cutaway",
+    "roof",
+    "walk",
+    "home-01-the-dune",
+    "home-02-the-tide",
+    "home-03-the-grove",
+    "home-04-the-loft",
+    "home-05-the-atelier",
+    "home-06-the-library",
+    "detail-bedroom",
+    "detail-kitchen",
+    "detail-bathroom"
+  ],
+  "errors": [],
+  "sourceCommit": "dfa10e536cafc92a96497f45becf8b38589664d6"
+}
