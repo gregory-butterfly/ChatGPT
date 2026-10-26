@@ -243,26 +243,64 @@ function bookcase(p,x,z,rot,wood=m.darkwood){
 }
 function kitchen(p,x,z,colors){
  const g=group(p,x,0,z);
- // Linear kitchen remains inside back-right room: 7.7..12.8 in flat-local X.
- box(g,4.6,.9,.64,0,.47,0,colors.cabinets,{collide:true});
- box(g,4.78,.09,.75,0,.94,0,colors.counter,{collide:true});
- for(const a of [-1.80,-1.0,-.2,.6,1.4,2.05]){
-   box(g,.014,.72,.025,a,.47,.342,m.darkwood);
-   box(g,.26,.038,.055,a+.29,.70,.37,m.bronze);
+ // Built-in cabinet carcass: leave cavities visible behind the hinged doors.
+ box(g,4.65,.055,.68,0,.075,0,colors.cabinets);
+ box(g,4.65,.05,.68,0,.91,0,colors.cabinets);
+ box(g,4.65,.83,.045,0,.48,-.32,colors.cabinets);
+ for(const a of [-2.29,-1.12,.01,1.13,2.29])
+  box(g,.045,.84,.66,a,.48,0,colors.cabinets);
+ box(g,4.80,.085,.76,0,.964,0,colors.counter,{collide:true});
+ // Three low cupboards plus a triple drawer stack, all interactive.
+ for(const [bx,bw] of [[-1.69,1.04],[-.56,1.05],[1.73,1.03]]){
+   makeDoor(g,bx,.095,.354,bw,.78,0,'kitchen cupboard',colors.cabinets, bx<0?-1:1);
  }
- for(const a of [-1.8,-.92,-.04,.84,1.72]){
-   box(g,.81,.77,.39,a,2.17,-.10,colors.cabinets);
-   box(g,.065,.055,.045,a+.22,2.10,.12,m.bronze);
+ for(let i=0;i<3;i++)drawer(g,.57,.23+i*.255,.37,.95,colors.cabinets,'kitchen drawer');
+ // Upper wall cupboards: doors can open independently.
+ for(const bx of [-1.75,-.88,0,.88,1.75]){
+   box(g,.85,.73,.36,bx,2.19,-.15,colors.cabinets);
+   makeDoor(g,bx,1.84,.068,.78,.70,0,'wall cupboard',colors.cabinets,bx<0?-1:1);
  }
- // Sink bowl and curved faucet
- box(g,.78,.018,.41,-1.12,.99,.05,m.steel);
+ // Sink and tap on the countertop.
+ box(g,.78,.021,.41,-1.12,1.01,.05,m.steel);
  cylinder(g,.024,.3,-1.39,1.15,-.13,m.bronze);
  box(g,.30,.025,.026,-1.24,1.3,-.13,m.bronze);
- // Stove with four burners
- box(g,.83,.025,.59,1.12,1.006,.035,m.black);
- for(const bx of [.88,1.34])for(const zz of [-.15,.23])cylinder(g,.10,.016,bx,1.03,zz,m.steel);
- box(g,.85,.14,.66,1.12,1.9,-.1,m.steel); // cooker hood
+ box(g,.83,.025,.59,1.12,1.01,.035,m.black);
+ for(const bx of [.88,1.34])for(const zz of [-.15,.23])
+  cylinder(g,.10,.016,bx,1.035,zz,m.steel);
+ box(g,.85,.14,.66,1.12,1.9,-.1,m.steel);
  box(g,.31,.40,.24,1.12,2.15,-.17,m.steel);
+ // Appliances: a small oven opening and a separate glass hob.
+ const oven=makeDoor(g,1.15,.11,.398,.72,.55,0,'oven',m.black,-1);
+ void oven;
+}
+function refrigerator(p,x,z,finish=m.steel){
+ const g=group(p,x,0,z);
+ const w=.83,h=1.95,d=.76;
+ box(g,.045,h,d,-w/2+.023,h/2,0,finish,{collide:true});
+ box(g,.045,h,d,w/2-.023,h/2,0,finish,{collide:true});
+ box(g,w,.045,d,0,.03,0,finish);
+ box(g,w,.045,d,0,h-.025,0,finish);
+ box(g,w,h,.05,0,h/2,-d/2,finish);
+ for(const yy of [.48,.96,1.44]){
+   box(g,w-.08,.035,d-.12,0,yy,0,m.white);
+ }
+ makeDoor(g,0,.06,d/2+.02,w-.09,h-.13,0,'fridge',finish,-1);
+ return g;
+}
+function recordPlayer(p,x,z,colors){
+ const g=group(p,x,0,z);
+ box(g,.85,.75,.52,0,.375,0,colors.cabinets);
+ box(g,.78,.05,.46,0,.78,0,m.ink);
+ const disc=cylinder(g,.21,.016,-.12,.82,.01,m.black,22);
+ cylinder(g,.055,.022,-.12,.839,.01,m.bronze);
+ const arm=box(g,.24,.028,.025,.21,.85,.07,m.bronze);arm.rotation.y=-.32;
+ const interaction={type:'record',object:disc,label:'Play record',playing:false,spinner:disc};
+ interaction.toggle=()=>{
+   interaction.playing=!interaction.playing;
+   interaction.label=interaction.playing?'Stop record':'Play record';
+ };
+ disc.userData.interaction=interaction;
+ interactions.push(interaction);
 }
 function bathroom(p,colors){
  // Bathroom's own coordinate system: x 4.38..7.5, z -7.67..0.
