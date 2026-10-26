@@ -50,6 +50,8 @@ const tmpV=new THREE.Vector3();
 const tmpBox=new THREE.Box3();
 let targetView=null;
 let fpsLocked=false;
+let touchLook=null;
+const coarsePointer=matchMedia('(pointer:coarse)').matches;
 let last=performance.now();
 let frame=0;
 let lastProbe=0;
@@ -126,17 +128,19 @@ function enterWalk(){
  $('explore-label').textContent='Exit walking';
  $('mode-label').textContent='WALK-THROUGH MODE';
  $('walk-help').hidden=false;$('crosshair').hidden=false;$('orbit-help').hidden=true;
+ $('touch-movement').hidden=!coarsePointer;
  if(state.floor===0){player.x=0;player.y=0;player.z=4.8;}
  else if(state.floor===4){player.x=5.5;player.y=4*H;player.z=2.5;}
  else {player.x=0;player.y=state.floor*H;player.z=4.8;}
  player.yaw=0;player.pitch=0;
- renderer.domElement.requestPointerLock?.().catch(()=>{});
+ if(!coarsePointer)renderer.domElement.requestPointerLock?.().catch(()=>{});
 }
 function exitWalk(){
  state.mode='orbit';document.body.classList.remove('walking');state.cutaway=state.previousCutaway;
  orbit.enabled=true;down.clear();state.hit=null;
  if(document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
  $('interaction').hidden=true;$('walk-help').hidden=true;$('crosshair').hidden=true;$('orbit-help').hidden=false;
+ $('touch-movement').hidden=true;touchLook=null;
  $('explore-label').textContent='Walk inside';
  $('mode-label').textContent='ARCHITECTURAL VIEW';
  applyLayers();
@@ -274,7 +278,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>down.delete(e.code));
 addEventListener('blur',()=>down.clear());
 renderer.domElement.addEventListener('click',()=>{
- if(state.mode==='walk' && !fpsLocked)renderer.domElement.requestPointerLock?.().catch(()=>{});
+ if(state.mode==='walk' && !fpsLocked && !coarsePointer)renderer.domElement.requestPointerLock?.().catch(()=>{});
 });
 document.addEventListener('pointerlockchange',()=>{
  fpsLocked=document.pointerLockElement===renderer.domElement;
@@ -284,6 +288,33 @@ document.addEventListener('mousemove',e=>{
  player.yaw-=e.movementX*.0020;
  player.pitch=THREE.MathUtils.clamp(player.pitch-e.movementY*.0019,-1.40,1.40);
 });
+// On mobile the actual FPS camera is controlled by a canvas swipe while
+// arrows hold the same WASD inputs as a keyboard.
+for(const button of document.querySelectorAll('[data-move]')){
+ const key=button.dataset.move;
+ const release=()=>{down.delete(key);button.classList.remove('pressed');};
+ button.addEventListener('pointerdown',e=>{
+   e.preventDefault();e.stopPropagation();
+   button.setPointerCapture(e.pointerId);down.add(key);button.classList.add('pressed');
+ });
+ button.addEventListener('pointerup',release);
+ button.addEventListener('pointercancel',release);
+ button.addEventListener('lostpointercapture',release);
+}
+renderer.domElement.addEventListener('pointerdown',e=>{
+ if(state.mode!=='walk'||e.pointerType!=='touch')return;
+ touchLook={id:e.pointerId,x:e.clientX,y:e.clientY};
+ renderer.domElement.setPointerCapture(e.pointerId);
+});
+renderer.domElement.addEventListener('pointermove',e=>{
+ if(state.mode!=='walk'||!touchLook||e.pointerId!==touchLook.id)return;
+ const dx=e.clientX-touchLook.x,dy=e.clientY-touchLook.y;
+ player.yaw-=dx*.0051;
+ player.pitch=THREE.MathUtils.clamp(player.pitch-dy*.0046,-1.40,1.40);
+ touchLook.x=e.clientX;touchLook.y=e.clientY;
+});
+renderer.domElement.addEventListener('pointerup',e=>{if(touchLook?.id===e.pointerId)touchLook=null;});
+renderer.domElement.addEventListener('pointercancel',()=>{touchLook=null;down.clear()});
 // Expose minimal read-only QA data, and camera selection to automated visual tests.
 window.northlightQA={
  ready:false,
