@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "details": {
+    "meshObjects": 2770,
+    "interactions": 30,
+    "homes": [
+      "THE DUNE",
+      "THE TIDE",
+      "THE GROVE",
+      "THE LOFT",
+      "THE ATELIER",
+      "THE LIBRARY"
+    ]
+  },
+  "walking": {
+    "x": 0,
+    "y": 6.700000000000001,
+    "z": 4.8,
+    "yaw": 0,
+    "pitch": 0,
+    "eye": 1.66
+  },
+  "captures": [
+    "exterior",
+    "first-floor cutaway",
+    "second-floor cutaway",
+    "roof",
+    "walk"
+  ],
+  "errors": [],
+  "sourceCommit": "2e1d909c0306be7b773d268c3bf4a25f554eddab"
+}
