@@ -202,7 +202,10 @@ function detectInteraction(now){
  const objects=[];
  for(const item of active){objects.push(item.object);if(item.secondary)objects.push(item.secondary);}
  const hit=ray.intersectObjects(objects,false)[0];
- const target=hit?.object?.userData?.interaction || active.find(i=>i.object===hit?.object||i.secondary===hit?.object);
+ // A missing ray hit must never be compared with undefined secondary meshes.
+ // Previously this made the Loft record player appear usable from EVERY room.
+ const target=hit ? (hit.object.userData.interaction ||
+   active.find(i=>i.object===hit.object||i.secondary===hit.object)) : null;
  state.hit=target || null;
  $('interaction').hidden=!state.hit;
  if(state.hit)$('use').textContent='E · '+state.hit.label.toUpperCase();
@@ -329,6 +332,8 @@ window.northlightQA={
    return world.interactions.reduce((out,i)=>{out[i.type||'door']=(out[i.type||'door']||0)+1;return out;},{});
  },
  get lightSwitchesOn(){return world.interactions.filter(i=>i.type==='switch'&&i.on).length},
+ get focusedInteraction(){return state.hit?.label||null},
+ get cameraPosition(){return [camera.position.x,camera.position.y,camera.position.z]},
  testInteraction(type){
    const i=world.interactions.find(i=>i.type===type);
    if(!i)throw Error('Interaction type not found: '+type);
