@@ -42,12 +42,21 @@
     <button id="explore" class="control-btn primary"><span class="control-symbol">↗</span><span id="explore-label">Walk inside</span></button>
   </div>
   <div class="interaction" id="interaction" hidden><button id="use">E · INTERACT</button></div>
+  <div class="touch-movement" id="touch-movement" hidden aria-label="Touch walking controls">
+    <div class="touch-heading">MOVE <small>Drag the 3D view to look around</small></div>
+    <div class="touch-arrows">
+      <button type="button" data-move="KeyW" class="touch-forward" aria-label="Forward">↑</button>
+      <button type="button" data-move="KeyA" class="touch-left" aria-label="Left">←</button>
+      <button type="button" data-move="KeyS" class="touch-back" aria-label="Back">↓</button>
+      <button type="button" data-move="KeyD" class="touch-right" aria-label="Right">→</button>
+    </div>
+  </div>
   <div class="crosshair" id="crosshair" hidden><span></span><span></span></div>
   <div class="walk-help" id="walk-help" hidden><strong>W A S D</strong> MOVE <i></i> <strong>SHIFT</strong> RUN <i></i> <strong>E</strong> USE <i></i> <strong>ESC</strong> EXIT <span id="walk-place"></span></div>
   <div class="hint-bar" id="orbit-help">DRAG TO ROTATE <span>·</span> SCROLL TO ZOOM <span>·</span> SELECT A FLOOR</div>
   <div id="loading" class="loading"><div class="loading-badge">N<span>·</span></div><div>Preparing Northlight House</div><small id="loading-detail">Setting the scene...</small></div>
   <div id="error" class="error-overlay" hidden role="alert"><h2>Unable to start the 3D view</h2><p id="error-text"></p><button onclick="location.reload()">Try again</button></div>
-  <dialog id="help-dialog"><div class="dialog-inner"><button id="close-help" class="dialog-x" aria-label="Close">✕</button><div class="eyebrow">WELCOME TO NORTHLIGHT HOUSE</div><h2>Explore the architecture.</h2><p>This is a completely new Three.js building inspired by the Meridian Court idea, with its own design, individually furnished flats and a rooftop garden.</p><dl><dt>Architectural view</dt><dd>Drag to rotate, scroll to zoom, select a floor on the left. The cutaway button lets you peek inside.</dd><dt>Walk inside</dt><dd>Use <strong>W A S D</strong> to walk, move your mouse to look, <strong>Shift</strong> to run and <strong>E</strong> to open a nearby door. Use the floor buttons to jump directly to another level.</dd><dt>Touch devices</dt><dd>Use architectural view to rotate, inspect and switch floors. First-person walking is designed primarily for keyboard and mouse.</dd></dl><button id="start-help" class="dialog-action">Start exploring</button></div></dialog>
+  <dialog id="help-dialog"><div class="dialog-inner"><button id="close-help" class="dialog-x" aria-label="Close">✕</button><div class="eyebrow">WELCOME TO NORTHLIGHT HOUSE</div><h2>Explore the architecture.</h2><p>This is a completely new Three.js building inspired by the Meridian Court idea, with its own design, individually furnished flats and a rooftop garden.</p><dl><dt>Architectural view</dt><dd>Drag to rotate, scroll to zoom, select a floor on the left. The cutaway button lets you peek inside.</dd><dt>Walk inside</dt><dd>Use <strong>W A S D</strong> to walk, move your mouse to look, <strong>Shift</strong> to run and <strong>E</strong> to open a nearby door. Use the floor buttons to jump directly to another level.</dd><dt>Touch devices</dt><dd>Use architectural view to rotate and inspect floors. In walking mode, use the on-screen arrows and drag the 3D scene to look. Tap the interaction prompt to use furniture and light switches.</dd></dl><button id="start-help" class="dialog-action">Start exploring</button></div></dialog>
 </div>
 <script type="module" src="./game.js"></script>
 </body>
