@@ -75,9 +75,19 @@ try {
     if(Math.abs(location.position.y-(Math.floor(index/2)+1)*3.35)>.04)
       throw Error('Floor mismatch in '+location.name+': '+location.position.y);
     await page.waitForTimeout(380);
+    const focus=await page.evaluate(()=>window.northlightQA.focusedInteraction);
+    if(index!==3 && focus && /record/i.test(focus))
+      throw Error('False record-player prompt in '+location.name);
     const name='home-'+String(index+1).padStart(2,'0')+'-'+location.name.toLowerCase().replaceAll(' ','-');
     await page.screenshot({path:folder+'/'+name+'.png',timeout:30000});
     captures.push(name);
+  }
+  // Inspect the accent wall and distinctive bespoke decor in each home.
+  for(let index=0;index<6;index++){
+    await page.evaluate(i=>window.northlightQA.gotoHome(i,'decor'),index);
+    await page.waitForTimeout(350);
+    await page.screenshot({path:folder+'/decor-'+String(index+1).padStart(2,'0')+'.png',timeout:30000});
+    captures.push('decor-'+String(index+1).padStart(2,'0'));
   }
   for(const [room,index] of [['bedroom',0],['kitchen',3],['bathroom',5]]){
     await page.evaluate(v=>window.northlightQA.gotoHome(v.index,v.room),{room,index});
