@@ -369,6 +369,81 @@ const homes=[
  {name:'THE ATELIER',subtitle:'Terracotta · Linen',wall:0xf4e7db,floor:0xc5a589,sofa:0xb87456,accent:0xe8cbb0,cab:0xb07957,art:[0xc97957,0x637e85,0xe8cbb0],variant:4},
  {name:'THE LIBRARY',subtitle:'Deep forest · Brass',wall:0xe9eee6,floor:0x8f9984,sofa:0x395f50,accent:0xc5ae79,cab:0x587057,art:[0x486c54,0xc4a56d,0x9bbaa3],variant:5}
 ];
+function floorLamp(p,x,z,colour=m.white){
+ const g=group(p,x,0,z);
+ cylinder(g,.18,.045,0,.035,0,m.steel);
+ cylinder(g,.026,1.4,0,.73,0,m.bronze);
+ cylinder(g,.22,.34,0,1.49,0,colour);
+ return g;
+}
+function scatterCushions(parent,x,z,tones){
+ for(let i=0;i<3;i++){
+  const ob=box(parent,.34,.11,.32,x+(i-1)*.36,.67,z+(i%2)*.10,material(tones[i%tones.length]));
+  ob.rotation.y=i%2?.18:-.12;
+ }
+}
+function decorateHome(flat,config,cabMat,accentMat,sofaMat){
+ const v=config.variant;
+ // Bespoke bedroom textile and wall artwork, shared geometry but unique colour.
+ art(flat,7.68,1.70,-4.70,.90,.77,Math.PI/2,config.art);
+ scatterCushions(flat,5.1,4.68,config.art);
+ // Leave the circulation corridor x~9..12, z~0..2 clear.
+ if(v===0){ // DUNE · hand-thrown pottery and warm lighting
+   floorLamp(flat,2.63,6.49,material(0xd5ac77));
+   const side=cabinet(flat,1.7,6.75,1.23,cabMat,0,.78,.38,'ceramics sideboard');
+   void side;
+   for(const [i,x] of [1.33,1.70,2.04].entries()){
+     cylinder(flat,.10+i*.018,.20+i*.045,x,1.05,6.76,material(config.art[i]),12);
+   }
+   art(flat,4.24,1.86,-3.82,.77,.92,-Math.PI/2,[0xc28c61,0xdab991,0x768e78]);
+ }else if(v===1){ // TIDE · sea glass console and coastal sculpture
+   floorLamp(flat,2.70,6.42,material(0xb9dce2));
+   const console=cabinet(flat,1.55,6.70,1.10,cabMat,0,.70,.42,'coastal console');
+   void console;
+   box(flat,.83,.39,.35,1.55,.97,6.70,m.glassDark);
+   box(flat,.76,.17,.30,1.55,.85,6.70,material(0x498c9c,.25));
+   ball(flat,.10,1.35,1.12,6.7,material(0xf4e5c5));
+   art(flat,4.24,1.85,-4.10,1.12,.73,-Math.PI/2,[0x4d9aad,0xb2d8d9,0xd4ad84]);
+ }else if(v===2){ // GROVE · botanical workstation
+   floorLamp(flat,2.72,6.43,material(0x779b71));
+   for(const [x,z,scale] of [[1.22,6.72,.88],[2.15,6.72,.64],[11.12,6.65,.55]])plant(flat,x,z,scale);
+   box(flat,1.28,.22,.47,10.60,.70,6.71,cabMat);
+   for(let i=0;i<4;i++)cylinder(flat,.09,.25,10.17+i*.27,.91,6.71,material(i%2?0x8caf8d:0xe3c18d),10);
+ }else if(v===3){ // LOFT · vinyl and contemporary graphic art
+   recordPlayer(flat,1.65,6.60,{cabinets:cabMat});
+   floorLamp(flat,2.80,6.39,material(0xd7ae71));
+   art(flat,4.24,1.74,-3.93,1.13,.86,-Math.PI/2,[0x233d48,0xc19550,0xd9cec0]);
+   const stand=group(flat,11.53,0,6.53);
+   box(stand,.83,.12,.38,0,.88,0,m.black);
+   for(let i=0;i<12;i++)box(stand,.042,.014,.31,-.36+i*.065,.954,0,i%3?m.white:m.black);
+   for(const x of [-.35,.35])box(stand,.045,.88,.045,x,.44,0,m.steel);
+ }else if(v===4){ // ATELIER · artist's easel and colourful canvas
+   const easel=group(flat,1.72,0,6.60);
+   for(const dx of [-.33,.33]){
+     const pole=box(easel,.06,1.9,.075,dx,1.0,0,m.timber);
+     pole.rotation.z=dx<0?.12:-.12;
+   }
+   box(easel,.79,.07,.15,0,.9,.04,m.darkwood);
+   box(easel,.76,1.04,.065,0,1.45,-.01,m.white);
+   const c=[0xbd694d,0xe8bc91,0x698f93].map(q=>material(q));
+   box(easel,.40,.33,.022,-.12,1.50,.040,c[0]);
+   const shape=ball(easel,.22,.19,1.30,.060,c[1]);shape.scale.y=.75;
+   box(easel,.14,.72,.03,.29,1.49,.046,c[2]);
+   const palette=table(flat,3.07,6.70,m.timber,.68,.40);
+   for(let i=0;i<4;i++)ball(palette,.065,-.21+i*.14,.84,0,material(config.art[i%3]));
+ }else { // LIBRARY · rich reading corner with bookcases
+   floorLamp(flat,2.62,6.55,material(0xe1c48f));
+   const reading=chair(flat,2.17,6.40,sofaMat,-Math.PI/4);
+   void reading;
+   const side=table(flat,3.21,6.51,cabMat,.48,.42);
+   for(let i=0;i<3;i++)box(side,.36,.04,.21,0,.84+i*.05,0,material(config.art[i]));
+   bookcase(flat,3.55,-1.40,Math.PI/2,cabMat);
+   art(flat,4.24,1.77,-4.05,.90,.98,-Math.PI/2,[0x385b4b,0xe2c18d,0x9eb1a0]);
+ }
+ // Mixed coloured geometric runners make both hallway and bedroom distinct.
+ rug(flat,2.14,-3.25,2.62,1.65,material(config.accent),m.white,v);
+ rug(flat,9.81,-2.55,2.52,1.14,material(config.wall),accentMat,v);
+}
 function apartment(parent,level,side,config,aptNo){
  // Opposite residences are mirrored spatially, but styled and furnished separately.
  const flat=group(parent,side==='L'?-W:W,0,0);
@@ -395,12 +470,12 @@ function apartment(parent,level,side,config,aptNo){
  vwall(flat,4.36,-7.6,0,0,H,wallMat);
  vwall(flat,7.54,-7.6,0,0,H,wallMat);
  // Lounge and dining, keep a 1.2m clear line between the entry and bathroom.
- rug(flat,5.40,4.00,4.4,2.9,accentMat,m.white);
+ rug(flat,5.40,4.00,4.4,2.9,accentMat,m.white,config.variant);
  sofa(flat,5.00,4.65,sofaMat,Math.PI,config.variant===4?2.8:2.6);
  table(flat,5.15,2.8,m.timber,1.1,.60);
  cabinet(flat,4.6,.56,1.88,m.darkwood,0,.50,.47);
  box(flat,1.49,.87,.08,4.60,1.17,.48,m.black);
- roomLight(flat,5.10,H-.16,3.60,.7);
+ roomLight(flat,5.10,H-.16,3.60,.7,{x:.30,z:5.71},'living room');
  plant(flat,.85,5.9,.90);
  // The outer x wall is solid from z 2.1 .. 3.3; hang art there.
  art(flat,.18,1.82,5.25,1.0,.85,Math.PI/2,config.art);
@@ -415,28 +490,27 @@ function apartment(parent,level,side,config,aptNo){
    box(flat,.48,.33,.065,11.59,1.1,5.28,m.black);
  }
  // Bedroom is x 0.2..4.3, z -7.6..0
- rug(flat,2.14,-3.25,2.62,1.65,material(0xcac5b7),m.white);
+ // Bedroom rug is authored by decorateHome using this residence's own motif.
  bed(flat,2.14,-6.50,cabMat,sofaMat);
  cabinet(flat,.72,-7.35,.65,cabMat,0,.56,.42);
  cabinet(flat,3.56,-7.35,.65,cabMat,0,.56,.42);
- box(flat,.56,2.15,.57,.58,1.08,-1.10,cabMat,{collide:true}); // built-in wardrobe
- box(flat,.08,.08,.065,.66,1.18,-.77,m.bronze);
+ cabinet(flat,.58,-1.10,.95,cabMat,0,2.15,.59,'bedroom wardrobe');
  art(flat,4.25,1.70,-2.48,1.0,.8,-Math.PI/2,config.art);
- roomLight(flat,2.05,H-.16,-3.3,.55);
+ roomLight(flat,2.05,H-.16,-3.3,.55,{x:4.24,z:-1.02},'bedroom');
  // Bathroom uses a dedicated self-contained layout; all fixtures are inside its walls.
  bathroom(flat,colors);
- roomLight(flat,5.95,H-.15,-3.5,.55);
+ roomLight(flat,5.95,H-.15,-3.5,.55,{x:7.41,z:-1.10},'bathroom');
  // Kitchen, x 7.6..12.9, z -7.6..0
  kitchen(flat,10.18,-7.72,colors);
- box(flat,.8,1.9,.75,12.12,.95,-4.95,m.steel,{collide:true}); // refrigerator
- box(flat,.04,.85,.07,12.51,1.10,-4.75,m.bronze);
+ refrigerator(flat,12.12,-4.95,config.variant===5?cabMat:m.steel);
  table(flat,10.10,-2.65,config.variant%2?cabMat:m.timber,1.36,.73);
  chair(flat,9.8,-1.88,sofaMat,Math.PI);
  chair(flat,10.4,-3.44,accentMat,0);
- roomLight(flat,10.18,H-.16,-3.1,.6);
+ roomLight(flat,10.18,H-.16,-3.1,.6,{x:12.79,z:-1.24},'kitchen');
  // Entry mat near corridor-facing door
  rug(flat,11.85,3.1,1.15,.72,material(0x827b6f),m.white);
- // All decoration respects open door and window spans.
+ // Six individual home-design packages, not merely six recoloured copies.
+ decorateHome(flat,config,cabMat,accentMat,sofaMat);
  flat.userData={homeName:config.name,aptNo};
  return flat;
 }
