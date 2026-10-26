@@ -87,6 +87,100 @@ function slab(p,x0,x1,z0,z1,y,mat=m.floor,walk=true){
    supports.push({x0,x1,z0,z1,y:worldY,kind:'slab'});
  }
 }
+
+/* Northlight Materials V1: lightweight authored canvas textures.
+   No external image loading; deterministic, repeatable and offline friendly. */
+const surfaceCache=new Map();
+function surfaceTemplate(kind,base){
+ const key=kind+':'+base;
+ if(surfaceCache.has(key))return surfaceCache.get(key);
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+ const c=canvas.getContext('2d');
+ let seed=1729+base;
+ const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ const rgb=new THREE.Color(base);
+ function tinted(mult,alpha=1){
+  const v=rgb.clone().multiplyScalar(mult);
+  return 'rgba('+Math.round(THREE.MathUtils.clamp(v.r,0,1)*255)+','+
+     Math.round(THREE.MathUtils.clamp(v.g,0,1)*255)+','+
+     Math.round(THREE.MathUtils.clamp(v.b,0,1)*255)+','+alpha+')';
+ }
+ c.fillStyle=tinted(1);c.fillRect(0,0,512,512);
+ if(kind==='plaster'||kind==='ceiling'){
+  for(let i=0;i<650;i++){
+   const x=rand()*512,y=rand()*512,w=1+rand()*9;
+   c.fillStyle=rand()>.5?'rgba(255,255,255,.024)':'rgba(25,24,19,.025)';
+   c.fillRect(x,y,w,1+rand()*2);
+  }
+ }else if(kind==='timber'||kind==='herringbone'){
+  const plank=kind==='herringbone'?76:91;
+  for(let i=0;i<Math.ceil(512/plank)+1;i++){
+   const left=i*plank;
+   for(let j=0;j<5;j++){
+    const start=j*114+((i%2)*55)-55;
+    c.fillStyle=tinted(.89+rand()*.20);
+    c.fillRect(left+2,start+2,plank-4,110);
+    for(let k=0;k<3;k++){
+      c.fillStyle='rgba(43,25,12,'+(.035+rand()*.055)+')';
+      c.fillRect(left+10+rand()*(plank-18),start+8,1,88);
+    }
+   }
+   c.fillStyle='rgba(42,34,21,.24)';c.fillRect(left,0,2,512);
+  }
+ }else if(kind==='tile'||kind==='kitchen'){
+  const t=kind==='tile'?86:122;
+  for(let y=0;y<512;y+=t)for(let x=0;x<512;x+=t){
+   c.fillStyle=tinted(.95+rand()*.095);c.fillRect(x+3,y+3,t-5,t-5);
+   c.strokeStyle='rgba(65,67,65,.14)';c.lineWidth=2;
+   c.strokeRect(x+2,y+2,t-3,t-3);
+   for(let k=0;k<7;k++){c.fillStyle='rgba(255,255,255,.04)';c.fillRect(x+rand()*t,y+rand()*t,2,3);}
+  }
+ }
+ const t=new THREE.CanvasTexture(canvas);
+ t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;
+ t.anisotropy=4;
+ surfaceCache.set(key,t);return t;
+}
+function texturedSurface(parent,x0,x1,z0,z1,y,kind,color,tileSize=2.1){
+ const w=x1-x0,d=z1-z0;
+ const tex=surfaceTemplate(kind,color).clone();tex.needsUpdate=true;
+ tex.repeat.set(w/tileSize,d/tileSize);
+ // Unlit floor pattern follows original world coordinates without changing collision.
+ const mat=new THREE.MeshStandardMaterial({map:tex,roughness:kind==='tile'?.55:.81,metalness:0});
+ const geom=new THREE.PlaneGeometry(w,d);
+ const mesh=new THREE.Mesh(geom,mat);
+ mesh.rotation.x=-Math.PI/2;mesh.position.set((x0+x1)/2,y,(z0+z1)/2);
+ mesh.receiveShadow=true;parent.add(mesh);
+ return mesh;
+}
+function skirting(parent,x0,x1,z0,z1,color){
+ const mat=material(color,.73);
+ const h=.14,t=.055;
+ if(z0===z1)box(parent,x1-x0,h,t,(x0+x1)/2,h/2,z0,mat);
+ else box(parent,t,h,z1-z0,x0,h/2,(z0+z1)/2,mat);
+}
+function roomFinishes(flat,config){
+ const style=['timber','timber','herringbone','timber','timber','herringbone'][config.variant];
+ const wood=[0xb38a5e,0xa7b5ad,0xa68e65,0x755b49,0xbf906a,0x76614b][config.variant];
+ const kitchen=[0xbcb7ac,0xc7d4d3,0xc3cbb5,0x868d88,0xd1b49f,0xaaa49a][config.variant];
+ // Clear distinct living, bedroom, kitchen and bathroom zones.
+ texturedSurface(flat,.23,12.91,.06,7.63,.012,style,wood,2.9);
+ texturedSurface(flat,.23,4.32,-7.60,-.07,.012,style,wood,2.25);
+ texturedSurface(flat,7.59,12.92,-7.60,-.07,.012,'kitchen',kitchen,1.65);
+ texturedSurface(flat,4.45,7.46,-7.58,-.08,.080,'tile',config.variant%2?0xc5d7d9:0xd7d1c5,1.18);
+ const trim=config.variant===3?0x5b5450:config.variant===5?0x645748:0xe8dcc7;
+ // Decorate only solid walls; leave windows and swinging doorways unobstructed.
+ for(const seg of [[.25,4.30,7.50,7.50],[4.50,12.85,7.50,7.50],
+  [.25,4.30,-7.53,-7.53],[7.63,12.85,-7.53,-7.53],
+  [.25,1.35,0,0],[2.40,5.02,0,0],[6.10,8.23,0,0],[11.50,12.90,0,0]])
+    skirting(flat,...seg,trim);
+ for(const [x,z0,z1] of [[4.27,-7.51,-.10],[7.62,-7.51,-.10],
+   [.27,-7.50,-5.4],[.27,-2.5,1.3],[.27,4.3,7.5]])
+    skirting(flat,x,x,z0,z1,trim);
+ // A dark, deliberately thin threshold announces each material change.
+ box(flat,3.02,.018,.07,5.97,.091,-.13,material(trim));
+ box(flat,3.04,.018,.07,9.99,.034,-.13,material(trim));
+}
 function wallText(p,txt,x,y,z,scale=1,col='#f6f3e9',rot=0){
  // Canvas-backed text, constrained to a solid surface (never a floating label).
  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;
@@ -458,6 +552,7 @@ function apartment(parent,level,side,config,aptNo){
  const cabMat=material(config.cab);
  const accentMat=material(config.accent);
  const colors={cabinets:cabMat,counter:m.white,towel:config.accent,backsplash:material(config.art[1])};
+ roomFinishes(flat,config);
  // Total flat local x=0..12.95 (outer to corridor), back z=-7.8..0.
  slab(flat,.25,12.94,-7.65,7.65,0,floorMat,false);
  // Original signature feature walls. Each home has its own rich backdrop.
@@ -748,13 +843,17 @@ function landscaping(scene){
  box(ground,34,.13,.55,0,.05,10.0,m.stone);
  box(ground,32,.1,.16,0,.08,-8.45,m.stone);
 }
-function ceiling(p,y){
- // Match the structural floor plates: leave the stairwell and lift shafts
- // physically clear so stairs never cut through a fake continuous ceiling.
+function ceiling(p,y,floorIndex){
+ // Brighter cream ceiling, separate in tone and subtle plaster grain.
+ // Never cap the stairwell or lift shaft.
  const upper=group(p);
- box(upper,12.9,.14,16.1,-9.35,y-.07,0,m.lime);
- box(upper,12.9,.14,16.1,9.35,y-.07,0,m.lime);
- box(upper,5.2,.14,9.65,0,y-.07,3.25,m.lime);
+ for(const side of [-1,1]){
+  const tone=floorIndex===0?0xf5f3e9:[0xf8f2e4,0xf3f8f5,0xf4f5e9,0xeae9e6,0xfff2e9,0xf0f2e8][(floorIndex-1)*2+(side===-1?0:1)];
+  const mat=material(tone,.97);
+  box(upper,12.9,.14,16.1,side*9.35,y-.07,0,mat);
+  texturedSurface(upper,side===-1?-15.8:2.90,side===-1?-2.9:15.8,-7.98,7.98,y-.144,'ceiling',tone,3.0).rotation.x=Math.PI/2;
+ }
+ box(upper,5.2,.14,9.65,0,y-.07,3.25,material(0xf4f5ed));
  return upper;
 }
 function createBuilding(scene){
@@ -773,7 +872,7 @@ function createBuilding(scene){
    roomLight(layer.contents,0,H-.2,4.9,.65);
   }
   if(floor<LEVELS-1) stairwell(layer.contents,floor);
-  layer.ceiling=ceiling(layer.contents,H-.01);
+  layer.ceiling=ceiling(layer.contents,H-.01,floor);
   // Stairwell ceiling / floor opening: use cutaway to hide upper ceilings.
  }
  roofGarden(scene);
