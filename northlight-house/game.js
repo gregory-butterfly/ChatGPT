@@ -70,7 +70,7 @@ function applyLayers(){
   // In cutaway, remove upper floors so the selected interior is genuinely visible.
   lv.group.visible=!state.cutaway || state.floor===4 || i<=state.floor;
   lv.front.visible=!state.cutaway;
-  if(lv.ceiling)lv.ceiling.visible=!state.cutaway && state.mode!=='walk';
+  if(lv.ceiling)lv.ceiling.visible=!state.cutaway; // FPS must show a real, light plaster ceiling.
  });
  $('cutaway').classList.toggle('active',state.cutaway);
  $('cutaway').setAttribute('aria-pressed',String(state.cutaway));
