@@ -475,7 +475,7 @@ function apartment(parent,level,side,config,aptNo){
  table(flat,5.15,2.8,m.timber,1.1,.60);
  cabinet(flat,4.6,.56,1.88,m.darkwood,0,.50,.47);
  box(flat,1.49,.87,.08,4.60,1.17,.48,m.black);
- roomLight(flat,5.10,H-.16,3.60,.7,{x:.30,z:5.71},'living room');
+ roomLight(flat,5.10,H-.16,3.60,.7,{x:.14,z:5.71},'living room');
  plant(flat,.85,5.9,.90);
  // The outer x wall is solid from z 2.1 .. 3.3; hang art there.
  art(flat,.18,1.82,5.25,1.0,.85,Math.PI/2,config.art);
@@ -506,7 +506,7 @@ function apartment(parent,level,side,config,aptNo){
  table(flat,10.10,-2.65,config.variant%2?cabMat:m.timber,1.36,.73);
  chair(flat,9.8,-1.88,sofaMat,Math.PI);
  chair(flat,10.4,-3.44,accentMat,0);
- roomLight(flat,10.18,H-.16,-3.1,.6,{x:12.79,z:-1.24},'kitchen');
+ roomLight(flat,10.18,H-.16,-3.1,.6,{x:13.02,z:-1.24},'kitchen');
  // Entry mat near corridor-facing door
  rug(flat,11.85,3.1,1.15,.72,material(0x827b6f),m.white);
  // Six individual home-design packages, not merely six recoloured copies.
