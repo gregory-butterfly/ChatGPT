@@ -79,7 +79,13 @@ function vWindow(p,x,z0,z1,lo=.85,hi=2.46){
 }
 function slab(p,x0,x1,z0,z1,y,mat=m.floor,walk=true){
  box(p,x1-x0,.2,z1-z0,(x0+x1)/2,y-.12,(z0+z1)/2,mat,{shadow:true});
- if(walk)supports.push({x0,x1,z0,z1,y,kind:'slab'});
+ if(walk){
+   // Support heights are WORLD-space. Upper-floor slabs used to register at
+   // ground level, which would make first-person visitors fall through floors.
+   p.updateWorldMatrix(true,false);
+   const worldY=p.localToWorld(new THREE.Vector3(0,y,0)).y;
+   supports.push({x0,x1,z0,z1,y:worldY,kind:'slab'});
+ }
 }
 function wallText(p,txt,x,y,z,scale=1,col='#f6f3e9',rot=0){
  // Canvas-backed text, constrained to a solid surface (never a floating label).
@@ -196,20 +202,20 @@ function bathroom(p,colors){
  // Bathroom's own coordinate system: x 4.38..7.5, z -7.67..0.
  box(p,3.10,.025,7.42,5.94,.057,-3.75,material(0xd3d7d2,.32));
  // Walkable door at x 5.1..6.08 and z=0. Shower at rear-left.
- box(p,1.18,.085,1.16,4.98,.075,-5.91,m.white,{collide:true});
- box(p,.042,1.95,1.16,5.60,1.08,-5.91,m.glassDark,{collide:true});
- box(p,1.18,1.95,.035,4.98,1.08,-5.30,m.glass,{collide:false});
- cylinder(p,.025,1.55,4.60,1.39,-6.29,m.steel);
- cylinder(p,.13,.042,4.74,2.16,-6.16,m.bronze);
+ box(p,1.18,.085,1.16,4.98,.075,-7.42,m.white,{collide:true});
+ box(p,.042,1.95,1.16,5.60,1.08,-7.42,m.glassDark,{collide:true});
+ box(p,1.18,1.95,.035,4.98,1.08,-6.82,m.glass,{collide:false});
+ cylinder(p,.025,1.55,4.60,1.39,-7.70,m.steel);
+ cylinder(p,.13,.042,4.74,2.16,-7.62,m.bronze);
  // Vanity is anchored 0.2m in front of the rear solid wall.
- cabinet(p,6.53,-6.84,1.15,colors.cabinets,0,.85,.55);
- box(p,1.20,.075,.59,6.53,.92,-6.84,colors.counter);
- cylinder(p,.24,.10,6.53,1.01,-6.84,m.white);
- cylinder(p,.025,.27,6.18,1.16,-7.01,m.bronze);
- box(p,.36,.032,.032,6.33,1.30,-7.01,m.bronze);
- box(p,.82,1.04,.042,6.53,1.78,-7.45,m.steel);
- box(p,.74,.96,.018,6.53,1.78,-7.416,material(0xc7e2e7,.08,.12));
- box(p,.14,.06,.11,6.97,.985,-6.72,material(0xf0bfa7));
+ cabinet(p,6.53,-7.39,1.15,colors.cabinets,0,.85,.55);
+ box(p,1.20,.075,.59,6.53,.92,-7.39,colors.counter);
+ cylinder(p,.24,.10,6.53,1.01,-7.39,m.white);
+ cylinder(p,.025,.27,6.18,1.16,-7.56,m.bronze);
+ box(p,.36,.032,.032,6.33,1.30,-7.56,m.bronze);
+ box(p,.82,1.04,.042,6.53,1.78,-8.01,m.steel);
+ box(p,.74,.96,.018,6.53,1.78,-7.978,material(0xc7e2e7,.08,.12));
+ box(p,.14,.06,.11,6.97,.985,-7.27,material(0xf0bfa7));
  // Toilet placed opposite glass screen, facing towards room front.
  box(p,.5,.50,.43,6.95,.26,-3.70,m.white,{collide:true});
  cylinder(p,.27,.14,6.95,.51,-3.42,m.white);
@@ -248,7 +254,8 @@ function balcony(p,x,z,y){
  for(const bx of [-1.48,0,1.48])box(g,.05,1.05,.06,bx,.52,1.85,m.steel);
  plant(g,-1.1,1.2,.55);
  box(g,.50,.055,.45,.45,.45,1.16,m.timber);
- supports.push({x0:x-1.55,x1:x+1.55,z0:z,z1:z+1.9,y,kind:'balcony'});
+ g.updateWorldMatrix(true,false);
+ supports.push({x0:x-1.55,x1:x+1.55,z0:z,z1:z+1.9,y:g.getWorldPosition(new THREE.Vector3()).y,kind:'balcony'});
 }
 const homes=[
  {name:'THE DUNE',subtitle:'Warm sand · Honey oak',wall:0xf4ebda,floor:0xbe9b70,sofa:0xc6a16f,accent:0xe7d2b0,cab:0xb8905e,art:[0xc18a66,0xe4c7a3,0x537d78],variant:0},
@@ -292,7 +299,7 @@ function apartment(parent,level,side,config,aptNo){
  roomLight(flat,5.10,H-.16,3.60,.7);
  plant(flat,.85,5.9,.90);
  // The outer x wall is solid from z 2.1 .. 3.3; hang art there.
- art(flat,.18,1.82,2.80,1.0,.85,Math.PI/2,config.art);
+ art(flat,.18,1.82,5.25,1.0,.85,Math.PI/2,config.art);
  const arm=chair(flat,1.50,3.62,accentMat,-Math.PI/3);
  void arm;
  table(flat,9.60,3.4,m.timber,1.65,1.02);
@@ -305,9 +312,9 @@ function apartment(parent,level,side,config,aptNo){
  }
  // Bedroom is x 0.2..4.3, z -7.6..0
  rug(flat,2.14,-3.25,2.62,1.65,material(0xcac5b7),m.white);
- bed(flat,2.14,-4.55,cabMat,sofaMat);
- cabinet(flat,.72,-5.61,.65,cabMat,0,.56,.42);
- cabinet(flat,3.56,-5.61,.65,cabMat,0,.56,.42);
+ bed(flat,2.14,-6.50,cabMat,sofaMat);
+ cabinet(flat,.72,-7.35,.65,cabMat,0,.56,.42);
+ cabinet(flat,3.56,-7.35,.65,cabMat,0,.56,.42);
  box(flat,.56,2.15,.57,.58,1.08,-1.10,cabMat,{collide:true}); // built-in wardrobe
  box(flat,.08,.08,.065,.66,1.18,-.77,m.bronze);
  art(flat,4.25,1.70,-2.48,1.0,.8,-Math.PI/2,config.art);
@@ -316,7 +323,7 @@ function apartment(parent,level,side,config,aptNo){
  bathroom(flat,colors);
  roomLight(flat,5.95,H-.15,-3.5,.55);
  // Kitchen, x 7.6..12.9, z -7.6..0
- kitchen(flat,10.18,-7.10,colors);
+ kitchen(flat,10.18,-7.72,colors);
  box(flat,.8,1.9,.75,12.12,.95,-4.95,m.steel,{collide:true}); // refrigerator
  box(flat,.04,.85,.07,12.51,1.10,-4.75,m.bronze);
  table(flat,10.10,-2.65,config.variant%2?cabMat:m.timber,1.36,.73);
@@ -351,7 +358,7 @@ function floorShell(scene,idx){
    vwall(content,xx,4.15,8.1,0,H,m.brick);
  }
  // Back elevation, 2 bedrooms windows and 2 kitchen windows per level.
- const segments=[[-15.8,-13.0,'wall'],[-13,-11,'win'],[-11,-6.5,'wall'],[-6.5,-3.6,'win'],[-3.6,3.6,'wall'],[3.6,6.5,'win'],[6.5,11,'wall'],[11,13,'win'],[13,15.8,'wall']];
+ const segments=[[-15.8,-14,'wall'],[-14,-12,'win'],[-12,-8,'wall'],[-8,-5,'win'],[-5,5,'wall'],[5,8,'win'],[8,12,'wall'],[12,14,'win'],[14,15.8,'wall']];
  for(const [a,b,k] of segments){if(k==='win')hWindow(content,a,b,-8.10,.95,2.43);else hwall(content,a,b,-8.1,0,H,m.brick)}
  // Dramatic horizontal concrete ribbon and shaded balcony lintel.
  box(front,31.8,.16,.26,0,3.27,8.17,m.stone);
@@ -372,7 +379,7 @@ function floorShell(scene,idx){
   wallText(front,'NORTHLIGHT HOUSE',0,2.92,8.49,.56,'#ecf4e8');
  }else{
   for(const side of [-1,1]){
-   const part=group(front,side==='L'?-W:W,0,8.1);
+   const part=group(front,side===-1?-W:W,0,8.1);
    if(side===1)part.scale.x=-1;
    hwall(part,0,.86,0,0,H,m.brick);
    hWindow(part,.86,2.92,0,.85,2.49);
